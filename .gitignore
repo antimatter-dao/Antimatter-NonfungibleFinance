@@ -1,0 +1,12 @@
+node_modules/
+.idea
+.openzeppelin
+.openzeppelin*
+secret.json
+secret.*.json
+backup/
+.openzeppelin/.session
+
+#Hardhat files
+cache
+artifacts

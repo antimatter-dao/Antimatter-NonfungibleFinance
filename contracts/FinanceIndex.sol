@@ -16,7 +16,7 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
     using SafeMathUpgradeable for uint;
 
     uint public fee;
-    address payable platform;
+    address payable public platform;
 
     function initialize(string memory _uri, address _platform, uint _fee) public initializer {
         super.__Ownable_init();
@@ -44,7 +44,7 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
     function mint(uint nftId, uint nftAmount, IAggregationRouterV3 router, bytes calldata data) external payable nonReentrant {
         Index memory index = indices[nftId];
-        require(index.creator != address(0), "Index not exists");
+        require(index.creator != address(0), "index not exists");
 
         {
             for (uint i = 0; i < index.underlyingTokens.length; i++) {
@@ -65,7 +65,7 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
 
     function burn(uint nftId, uint nftAmount, IAggregationRouterV3 router, bytes calldata data) external nonReentrant {
         Index memory index = indices[nftId];
-        require(index.creator != address(0), "Index not exists");
+        require(index.creator != address(0), "index not exists");
 
         {
             for (uint i = 0; i < index.underlyingTokens.length; i++) {
@@ -97,11 +97,11 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
     }
 
     function _handleFee(uint nftId) private {
-        require(msg.value == fee, "Invalid FEE");
+        require(msg.value == fee, "invalid FEE");
         uint halfFee = fee.div(2);
         if (halfFee > 0) {
             // TODO swap platform token first
-            indices[nftId].creator.transfer(halfFee);
+            payable(indices[nftId].creator).transfer(halfFee);
             platform.transfer(halfFee);
         }
     }

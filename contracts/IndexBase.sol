@@ -11,7 +11,7 @@ contract IndexBase {
     }
 
     struct Index {
-        address payable creator;
+        address creator;
         // address list of underlying token
         address[] underlyingTokens;
         // amount list of underlying token
@@ -20,6 +20,10 @@ contract IndexBase {
 
     mapping(uint => Index) public indices;
     uint public nextNftId;
+
+    function getIndex(uint nftId) public view returns(Index memory) {
+        return indices[nftId];
+    }
 
     event IndexCreated(address indexed sender, uint nftId, Index index);
     event Mint(address indexed sender, uint nftId, uint nftAmount);

@@ -13,13 +13,13 @@ contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
     }
 
     function _mintNFT(address to, uint tokenId, uint amount) internal override {
-        require(amount == 1, "");
+        require(amount == 1, "invalid amount");
         super._mint(to, tokenId);
     }
 
     function _burnNFT(address account, uint tokenId, uint amount) internal override {
-        require(super.ownerOf(tokenId) == account, "");
-        require(amount == 1, "");
+        require(super.ownerOf(tokenId) == account, "invalid owner");
+        require(amount == 1, "invalid amount");
         super._burn(tokenId);
     }
 }

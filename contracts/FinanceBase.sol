@@ -42,7 +42,7 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
 
     function claim(uint tokenId) external nonReentrant {
         Pool memory pool = pools[tokenId];
-        require(pool.creator != address(0), "not exists");
+        require(pool.creator != address(0), "pool not exists");
 
         _burnNFT(msg.sender, tokenId, pool.amountTotal0);
 

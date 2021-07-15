@@ -12,8 +12,6 @@ contract IndexBase {
 
     struct Index {
         address payable creator;
-        // address of buy token
-        uint tokenId;
         // address list of underlying token
         address[] underlyingTokens;
         // amount list of underlying token
@@ -21,9 +19,9 @@ contract IndexBase {
     }
 
     mapping(uint => Index) public indices;
-    uint public nextTokenId;
+    uint public nextNftId;
 
-    event IndexCreated(address indexed sender, Index index);
-    event Mint(address indexed sender, uint tokenId, uint amount);
-    event Burn(address indexed sender, uint tokenId, uint amount);
+    event IndexCreated(address indexed sender, uint nftId, Index index);
+    event Mint(address indexed sender, uint nftId, uint nftAmount);
+    event Burn(address indexed sender, uint nftId, uint nftAmount);
 }

@@ -18,46 +18,45 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
 
     function create(CreateReq memory req) external nonReentrant {
         require(req.claimType <= 2, "invalid claimType");
-        require(req.token1.length > 0, "invalid length");
-        require(req.token1.length == req.amountTotal1.length, "invalid length");
+        require(req.underlyingTokens.length > 0, "invalid length of underlyingTokens");
+        require(req.underlyingTokens.length == req.underlyingAmounts.length, "invalid length of underlyingTokens");
 
-        for (uint i = 0; i < req.token1.length; i++) {
-            IERC20Upgradeable(req.token1[i]).safeTransfer(address(this), req.amountTotal1[i]);
+        for (uint i = 0; i < req.underlyingTokens.length; i++) {
+            IERC20Upgradeable(req.underlyingTokens[i]).safeTransfer(address(this), req.underlyingAmounts[i]);
         }
 
-        uint tokenId = nextTokenId++;
-        _mintNFT(msg.sender, tokenId, req.amountTotal0);
+        uint nftId = nextNftId++;
+        _mintNFT(msg.sender, nftId, req.nftAmount);
 
         Pool memory pool;
         pool.creator = msg.sender;
-        pool.tokenId = tokenId;
-        pool.amountTotal0 = req.amountTotal0;
-        pool.token1 = req.token1;
-        pool.amountTotal1 = req.amountTotal1;
+        pool.nftAmount = req.nftAmount;
+        pool.underlyingTokens = req.underlyingTokens;
+        pool.underlyingAmounts = req.underlyingAmounts;
         pool.claimType = req.claimType;
-        pools[tokenId] = pool;
+        pools[nftId] = pool;
 
-        emit Created(msg.sender, pool);
+        emit Created(msg.sender, nftId, pool);
     }
 
-    function claim(uint tokenId) external nonReentrant {
-        Pool memory pool = pools[tokenId];
+    function claim(uint nftId) external nonReentrant {
+        Pool memory pool = pools[nftId];
         require(pool.creator != address(0), "pool not exists");
 
-        _burnNFT(msg.sender, tokenId, pool.amountTotal0);
+        _burnNFT(msg.sender, nftId, pool.nftAmount);
 
-        for (uint i = 0; i < pool.token1.length; i++) {
-            IERC20Upgradeable(pool.token1[i]).safeTransfer(msg.sender, pool.amountTotal1[i]);
+        for (uint i = 0; i < pool.underlyingTokens.length; i++) {
+            IERC20Upgradeable(pool.underlyingTokens[i]).safeTransfer(msg.sender, pool.underlyingAmounts[i]);
         }
 
-        emit Claimed(msg.sender, tokenId, pool.token1, pool.amountTotal1);
+        emit Claimed(msg.sender, nftId, pool.underlyingTokens, pool.underlyingAmounts);
     }
 
     function approveERC20(address token, address spender, uint amount) external onlyOwner {
         IERC20Upgradeable(token).approve(spender, amount);
     }
 
-    function _mintNFT(address to, uint tokenId, uint amount) internal virtual;
+    function _mintNFT(address to, uint nftId, uint amount) internal virtual;
 
-    function _burnNFT(address account, uint tokenId, uint amount) internal virtual;
+    function _burnNFT(address account, uint nftId, uint amount) internal virtual;
 }

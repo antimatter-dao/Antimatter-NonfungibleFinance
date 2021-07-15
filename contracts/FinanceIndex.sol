@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol
 import "./IndexBase.sol";
 import "./interfaces/IAggregationRouterV3.sol";
 
-contract Index is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC1155Upgradeable {
+contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC1155Upgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint;
 
@@ -31,20 +31,19 @@ contract Index is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC
         require(req.underlyingTokens.length > 0, "invalid length");
         require(req.underlyingTokens.length == req.underlyingAmounts.length, "invalid length");
 
-        uint tokenId = nextTokenId++;
+        uint nftId = nextNftId++;
 
         Index memory index;
         index.creator = payable(msg.sender);
-        index.tokenId = tokenId;
         index.underlyingTokens = req.underlyingTokens;
         index.underlyingAmounts = req.underlyingAmounts;
-        indices[tokenId] = index;
+        indices[nftId] = index;
 
-        emit IndexCreated(msg.sender, index);
+        emit IndexCreated(msg.sender, nftId, index);
     }
 
-    function mint(uint tokenId, uint amount, IAggregationRouterV3 router, bytes calldata data) external payable nonReentrant {
-        Index memory index = indices[tokenId];
+    function mint(uint nftId, uint nftAmount, IAggregationRouterV3 router, bytes calldata data) external payable nonReentrant {
+        Index memory index = indices[nftId];
         require(index.creator != address(0), "Index not exists");
 
         {
@@ -58,14 +57,14 @@ contract Index is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC
             }
         }
 
-        super._mint(msg.sender, tokenId, amount, "");
-        _handleFee(tokenId);
+        super._mint(msg.sender, nftId, nftAmount, "");
+        _handleFee(nftId);
 
-        emit Mint(msg.sender, tokenId, amount);
+        emit Mint(msg.sender, nftId, nftAmount);
     }
 
-    function burn(uint tokenId, uint amount, IAggregationRouterV3 router, bytes calldata data) external nonReentrant {
-        Index memory index = indices[tokenId];
+    function burn(uint nftId, uint nftAmount, IAggregationRouterV3 router, bytes calldata data) external nonReentrant {
+        Index memory index = indices[nftId];
         require(index.creator != address(0), "Index not exists");
 
         {
@@ -79,10 +78,10 @@ contract Index is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC
             }
         }
 
-        super._burn(msg.sender, tokenId, amount);
-        _handleFee(tokenId);
+        super._burn(msg.sender, nftId, nftAmount);
+        _handleFee(nftId);
 
-        emit Burn(msg.sender, tokenId, amount);
+        emit Burn(msg.sender, nftId, nftAmount);
     }
 
     function approveERC20(address token, address spender, uint amount) external onlyOwner {
@@ -97,11 +96,12 @@ contract Index is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC
         platform = platform_;
     }
 
-    function _handleFee(uint tokenId) private {
+    function _handleFee(uint nftId) private {
         require(msg.value == fee, "Invalid FEE");
         uint halfFee = fee.div(2);
         if (halfFee > 0) {
-            indices[tokenId].creator.transfer(halfFee);
+            // TODO swap platform token first
+            indices[nftId].creator.transfer(halfFee);
             platform.transfer(halfFee);
         }
     }

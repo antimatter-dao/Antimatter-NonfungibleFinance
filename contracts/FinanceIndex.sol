@@ -18,13 +18,13 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
     uint public fee;
     address payable platform;
 
-    function initialize(string memory uri) public initializer {
+    function initialize(string memory _uri, address _platform, uint _fee) public initializer {
         super.__Ownable_init();
         super.__ReentrancyGuard_init();
-        super.__ERC1155_init(uri);
 
-        fee = 0.05 ether;
-        platform = payable(0x0000000000000000000000000000000000000000);
+        super.__ERC1155_init(_uri);
+        platform = payable(_platform);
+        fee = _fee;
     }
 
     function createIndex(CreateReq memory req) external {

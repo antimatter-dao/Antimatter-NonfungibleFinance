@@ -16,10 +16,6 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
         super.__ReentrancyGuard_init();
     }
 
-    function approveErc20Token(address token, address spender, uint amount) external onlyOwner {
-        IERC20Upgradeable(token).approve(spender, amount);
-    }
-
     function create(CreateReq memory req) external nonReentrant {
         require(req.claimType <= 2, "invalid claimType");
         require(req.token1.length > 0, "invalid length");

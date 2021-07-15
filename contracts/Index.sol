@@ -27,10 +27,6 @@ contract Index is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC
         platform = payable(0x0000000000000000000000000000000000000000);
     }
 
-    function approveErc20Token(address token, address spender, uint amount) external onlyOwner {
-        IERC20Upgradeable(token).approve(spender, amount);
-    }
-
     function createIndex(CreateReq memory req) external {
         require(req.underlyingTokens.length > 0, "invalid length");
         require(req.underlyingTokens.length == req.underlyingAmounts.length, "invalid length");

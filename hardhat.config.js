@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
 require("@nomiclabs/hardhat-web3");
-const { projectId, mnemonic } = require('./secret.json');
+const { projectId, mnemonic } = require('./secret.rinkeby.json');
 
 /**
  * @type import('hardhat/config').HardhatUserConfig

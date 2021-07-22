@@ -71,21 +71,21 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         emit Mint(msg.sender, nftId, nftAmount, totalInAmount.sub(remaining));
     }
 
-        function burn(uint nftId, uint nftAmount) external nonReentrant {
+        function burn(uint nftId, uint nftAmount, uint[] memory amountOutMins) external nonReentrant {
             Index memory index = indices[nftId];
             require(index.creator != address(0), "index not exists");
+            require(index.underlyingTokens.length == amountOutMins.length, "invalid length of amountOutMins");
 
             uint totalOutAmount = 0;
             for (uint i = 0; i < index.underlyingTokens.length; i++) {
                 uint amountIn = index.underlyingAmounts[i];
-                uint amountOutMin = 0;
                 address[] memory path = new address[](2);
                 path[0] = index.underlyingTokens[i];
                 path[1] = IUniswapV2Router02(router).WETH();
                 uint deadline = block.timestamp.add(20 minutes);
                 IERC20Upgradeable(index.underlyingTokens[i]).approve(router, amountIn);
                 uint[] memory amounts = IUniswapV2Router02(router)
-                    .swapExactTokensForETH(amountIn, amountOutMin, path, address(this), deadline);
+                    .swapExactTokensForETH(amountIn, amountOutMins[i], path, address(this), deadline);
                 totalOutAmount = totalOutAmount.add(amounts[amounts.length-1]);
             }
 

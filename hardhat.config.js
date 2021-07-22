@@ -15,6 +15,10 @@ module.exports = {
       url: `https://rinkeby.infura.io/v3/${projectId}`,
       accounts: [mnemonic]
     },
+    ropsten: {
+      url: `https://ropsten.infura.io/v3/${projectId}`,
+      accounts: [mnemonic]
+    },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${projectId}`,
       accounts: [mnemonic]

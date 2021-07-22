@@ -15,9 +15,9 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint;
 
-    address public router = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address public router;
     address public matter;
-    address payable public platform;
+    address public platform;
     uint public fee;
 
     function initialize(string memory _uri, address _matter, address _platform, uint _fee) public initializer {
@@ -26,8 +26,9 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
 
         super.__ERC1155_init(_uri);
         matter = _matter;
-        platform = payable(_platform);
+        platform = _platform;
         fee = _fee;
+        router = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     }
 
     function createIndex(CreateReq memory req) external {
@@ -51,6 +52,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         require(msg.value > fee, "invalid value");
         uint totalInAmount = msg.value.sub(fee);
 
+        uint remaining = totalInAmount;
         for (uint i = 0; i < index.underlyingTokens.length; i++) {
             uint amountOut = index.underlyingAmounts[i];
             address[] memory path = new address[](2);
@@ -58,19 +60,18 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             path[1] = index.underlyingTokens[i];
             uint deadline = block.timestamp.add(20 minutes);
             uint[] memory amounts = IUniswapV2Router02(router)
-                .swapETHForExactTokens{value: totalInAmount}(amountOut, path, address(this), deadline);
-            totalInAmount = totalInAmount.sub(amounts[0]);
+                .swapETHForExactTokens{value: remaining}(amountOut, path, address(this), deadline);
+            remaining = remaining.sub(amounts[0]);
         }
 
-        uint remaining = totalInAmount;
         super._mint(msg.sender, nftId, nftAmount, "");
         _handleFee(nftId);
         payable(msg.sender).transfer(remaining);
 
-        emit Mint(msg.sender, nftId, nftAmount);
+        emit Mint(msg.sender, nftId, nftAmount, totalInAmount.sub(remaining));
     }
 
-        function burn(uint nftId, uint nftAmount) external payable nonReentrant {
+        function burn(uint nftId, uint nftAmount) external nonReentrant {
             Index memory index = indices[nftId];
             require(index.creator != address(0), "index not exists");
 
@@ -92,7 +93,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             payable(msg.sender).transfer(totalOutAmount.sub(fee));
             _handleFee(nftId);
 
-            emit Burn(msg.sender, nftId, nftAmount);
+            emit Burn(msg.sender, nftId, nftAmount, totalOutAmount);
         }
 
     function approveERC20(address token, address spender, uint amount) external onlyOwner {
@@ -103,7 +104,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         fee = fee_;
     }
 
-    function setPlatform(address payable platform_) external onlyOwner {
+    function setPlatform(address platform_) external onlyOwner {
         platform = platform_;
     }
 
@@ -114,7 +115,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     function _handleFee(uint nftId) private {
         uint halfFee = fee.div(2);
         if (halfFee > 0) {
-            platform.transfer(halfFee);
+            payable(platform).transfer(halfFee);
 
             uint amountOutMin = 0;
             address[] memory path = new address[](2);

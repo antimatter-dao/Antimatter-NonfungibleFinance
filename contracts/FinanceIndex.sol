@@ -60,7 +60,7 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
         super._mint(msg.sender, nftId, nftAmount, "");
         _handleFee(nftId);
 
-        emit Mint(msg.sender, nftId, nftAmount);
+        emit Mint(msg.sender, nftId, nftAmount, 0);
     }
 
     function burn(uint nftId, uint nftAmount, IAggregationRouterV3 router, bytes calldata data) external nonReentrant {
@@ -81,7 +81,7 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
         super._burn(msg.sender, nftId, nftAmount);
         _handleFee(nftId);
 
-        emit Burn(msg.sender, nftId, nftAmount);
+        emit Burn(msg.sender, nftId, nftAmount, 0);
     }
 
     function approveERC20(address token, address spender, uint amount) external onlyOwner {

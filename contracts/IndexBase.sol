@@ -33,4 +33,5 @@ contract IndexBase {
     event IndexCreated(address indexed sender, uint nftId, Index index);
     event Mint(address indexed sender, uint nftId, uint nftAmount, uint totalSpend);
     event Burn(address indexed sender, uint nftId, uint nftAmount, uint totalIncome);
+    event FeeReceived(uint indexed nftId, address indexed platform, address indexed creator, uint platformFee, uint creatorFee);
 }

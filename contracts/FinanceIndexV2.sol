@@ -123,8 +123,10 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             path[0] = IUniswapV2Router02(router).WETH();
             path[1] = matter;
             uint deadline = block.timestamp.add(20 minutes);
-            IUniswapV2Router02(router)
+            uint[] memory amounts = IUniswapV2Router02(router)
                 .swapExactETHForTokens{value: halfFee}(amountOutMin, path, indices[nftId].creator, deadline);
+
+            emit FeeReceived(nftId, platform, indices[nftId].creator, halfFee, amounts[amounts.length-1]);
         }
     }
 

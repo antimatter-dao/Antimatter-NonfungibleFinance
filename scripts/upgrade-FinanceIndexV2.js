@@ -4,7 +4,7 @@ async function main() {
     const Contract = await ethers.getContractFactory("FinanceIndexV2");
     const proxyAddress = '';
     const contract = await upgrades.upgradeProxy(proxyAddress, Contract);
-    console.log("Index upgraded at: ", contract.address);
+    console.log("FinanceIndexV2 upgraded at: ", contract.address);
 }
 
 

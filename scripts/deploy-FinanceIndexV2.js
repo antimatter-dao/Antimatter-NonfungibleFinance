@@ -9,7 +9,7 @@ async function main() {
     const contract = await upgrades.deployProxy(Contract, [uri, matter, platform, fee], 'initialize');
     await contract.deployed();
 
-    console.log("FinanceIndex deployed to:", contract.address);
+    console.log("FinanceIndexV2 deployed to:", contract.address);
 }
 
 main()

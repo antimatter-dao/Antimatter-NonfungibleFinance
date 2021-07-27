@@ -8,6 +8,8 @@ contract StructBase {
     uint internal constant ClaimTypeLinear = 2;
 
     struct CreateReq {
+        // metadata of NFT
+        string metadata;
         // NFT amount
         uint nftAmount;
         // address list of underlying token
@@ -20,6 +22,9 @@ contract StructBase {
     }
 
     struct Pool {
+        // metadata of NFT
+        string metadata;
+        // creator of Pool
         address creator;
         // NFT amount
         uint nftAmount;
@@ -34,6 +39,10 @@ contract StructBase {
 
     mapping(uint => Pool) public pools;
     uint public nextNftId;
+
+    function getPool(uint nftId) public view returns(Pool memory) {
+        return pools[nftId];
+    }
 
     event Created(address indexed sender, uint nftId, Pool pool);
     event Claimed(address indexed sender, uint nftId, address[] underlyingTokens, uint[] underlyingAmounts);

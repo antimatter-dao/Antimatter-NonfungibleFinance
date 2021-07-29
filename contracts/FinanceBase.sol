@@ -29,6 +29,7 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
         _mintNFT(msg.sender, nftId, req.nftAmount);
 
         Pool memory pool;
+        pool.name = req.name;
         pool.metadata = req.metadata;
         pool.creator = msg.sender;
         pool.nftAmount = req.nftAmount;

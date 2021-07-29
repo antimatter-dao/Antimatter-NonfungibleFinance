@@ -34,6 +34,7 @@ contract FinanceIndex is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeab
         uint nftId = nextNftId++;
 
         Index memory index;
+        index.name = req.name;
         index.metadata = req.metadata;
         index.creator = payable(msg.sender);
         index.underlyingTokens = req.underlyingTokens;

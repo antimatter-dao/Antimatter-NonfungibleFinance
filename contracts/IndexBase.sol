@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 contract IndexBase {
     struct CreateReq {
+        string name;
         // metadata of NFT
         string metadata;
         // address list of underlying token
@@ -13,6 +14,7 @@ contract IndexBase {
     }
 
     struct Index {
+        string name;
         // metadata of NFT
         string metadata;
         // creator of the index

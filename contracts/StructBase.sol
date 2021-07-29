@@ -3,11 +3,12 @@
 pragma solidity ^0.8.0;
 
 contract StructBase {
-    uint internal constant ClaimTypeInstant  = 0;
-    uint internal constant ClaimTypeDelay = 1;
-    uint internal constant ClaimTypeLinear = 2;
+    uint internal constant ClaimTypeSpot  = 0;
+    uint internal constant ClaimTypeFuture = 1;
+    uint internal constant ClaimTypeLocker = 2;
 
     struct CreateReq {
+        string name;
         // metadata of NFT
         string metadata;
         // NFT amount
@@ -22,6 +23,7 @@ contract StructBase {
     }
 
     struct Pool {
+        string name;
         // metadata of NFT
         string metadata;
         // creator of Pool

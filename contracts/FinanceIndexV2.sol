@@ -45,7 +45,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         index.underlyingAmounts = req.underlyingAmounts;
         indices[nftId] = index;
 
-        emit IndexCreated(msg.sender, nftId, index);
+        emit IndexCreated(msg.sender, nftId, req.name);
     }
 
     function mint(uint nftId, uint nftAmount) external payable nonReentrant {

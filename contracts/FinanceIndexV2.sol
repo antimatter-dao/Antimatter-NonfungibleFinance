@@ -56,7 +56,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
 
         uint remaining = totalInAmount;
         for (uint i = 0; i < index.underlyingTokens.length; i++) {
-            uint amountOut = index.underlyingAmounts[i];
+            uint amountOut = index.underlyingAmounts[i].mul(nftAmount);
             address[] memory path = new address[](2);
             path[0] = IUniswapV2Router02(router).WETH();
             path[1] = index.underlyingTokens[i];
@@ -80,7 +80,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
 
             uint totalOutAmount = 0;
             for (uint i = 0; i < index.underlyingTokens.length; i++) {
-                uint amountIn = index.underlyingAmounts[i];
+                uint amountIn = index.underlyingAmounts[i].mul(nftAmount);
                 address[] memory path = new address[](2);
                 path[0] = index.underlyingTokens[i];
                 path[1] = IUniswapV2Router02(router).WETH();

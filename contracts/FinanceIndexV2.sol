@@ -56,12 +56,12 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         emit IndexCreated(msg.sender, nftId, req.name);
     }
 
-    function mint(uint nftId, uint nftAmount) external payable nonReentrant {
+    function mint(uint nftId, uint nftAmount, uint[] memory amountInMaxs) external payable nonReentrant {
         Index memory index = indices[nftId];
         require(index.creator != address(0), "index not exists");
         require(msg.value > fee, "invalid value");
-        uint totalInAmount = msg.value.sub(fee);
 
+        uint totalInAmount = msg.value.sub(fee);
         uint remaining = totalInAmount;
         for (uint i = 0; i < index.underlyingTokens.length; i++) {
             uint amountOut = index.underlyingAmounts[i].mul(nftAmount);
@@ -70,7 +70,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             path[1] = index.underlyingTokens[i];
             uint deadline = block.timestamp.add(20 minutes);
             uint[] memory amounts = router
-                .swapETHForExactTokens{value: remaining}(amountOut, path, address(this), deadline);
+                .swapETHForExactTokens{value: amountInMaxs[i]}(amountOut, path, address(this), deadline);
             remaining = remaining.sub(amounts[0]);
         }
 

@@ -100,8 +100,9 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             }
 
             super._burn(msg.sender, nftId, nftAmount);
-            payable(msg.sender).transfer(totalOutAmount.sub(fee));
-            _handleFee(nftId);
+            if (totalOutAmount > 0) {
+                payable(msg.sender).transfer(totalOutAmount);
+            }
 
             emit Burn(msg.sender, nftId, nftAmount, totalOutAmount);
         }

@@ -60,6 +60,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         Index memory index = indices[nftId];
         require(index.creator != address(0), "index not exists");
         require(msg.value > fee, "invalid value");
+        require(index.underlyingTokens.length == amountInMaxs.length, "invalid length of amountInMaxs");
 
         uint totalInAmount = msg.value.sub(fee);
         uint remaining = totalInAmount;

@@ -9,13 +9,15 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "./IndexBase.sol";
 
 contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC1155Upgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint;
 
-    address public router;
+    IUniswapV2Router02 public router;
+    IUniswapV2Factory public factory;
     address public matter;
     address public platform;
     uint public fee;
@@ -28,12 +30,18 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         matter = _matter;
         platform = _platform;
         fee = _fee;
-        router = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
     }
 
     function createIndex(CreateReq memory req) external {
         require(req.underlyingTokens.length > 0, "invalid length");
         require(req.underlyingTokens.length == req.underlyingAmounts.length, "invalid length");
+
+        address weth = router.WETH();
+        for (uint i = 0; i < req.underlyingTokens.length; i++) {
+            require(factory.getPair(req.underlyingTokens[i], weth) != address(0), "pair not exists");
+        }
 
         uint nftId = nextNftId++;
 
@@ -58,10 +66,10 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         for (uint i = 0; i < index.underlyingTokens.length; i++) {
             uint amountOut = index.underlyingAmounts[i].mul(nftAmount);
             address[] memory path = new address[](2);
-            path[0] = IUniswapV2Router02(router).WETH();
+            path[0] = router.WETH();
             path[1] = index.underlyingTokens[i];
             uint deadline = block.timestamp.add(20 minutes);
-            uint[] memory amounts = IUniswapV2Router02(router)
+            uint[] memory amounts = router
                 .swapETHForExactTokens{value: remaining}(amountOut, path, address(this), deadline);
             remaining = remaining.sub(amounts[0]);
         }
@@ -83,10 +91,10 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
                 uint amountIn = index.underlyingAmounts[i].mul(nftAmount);
                 address[] memory path = new address[](2);
                 path[0] = index.underlyingTokens[i];
-                path[1] = IUniswapV2Router02(router).WETH();
+                path[1] = router.WETH();
                 uint deadline = block.timestamp.add(20 minutes);
-                IERC20Upgradeable(index.underlyingTokens[i]).approve(router, amountIn);
-                uint[] memory amounts = IUniswapV2Router02(router)
+                IERC20Upgradeable(index.underlyingTokens[i]).approve(address(router), amountIn);
+                uint[] memory amounts = router
                     .swapExactTokensForETH(amountIn, amountOutMins[i], path, address(this), deadline);
                 totalOutAmount = totalOutAmount.add(amounts[amounts.length-1]);
             }
@@ -111,8 +119,13 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     }
 
     function setUniswapV2Router(address router_) external onlyOwner {
-        router = router_;
+        router = IUniswapV2Router02(router_);
     }
+
+    function setUniswapV2Factory(address factory_) external onlyOwner {
+        factory = IUniswapV2Factory(factory_);
+    }
+
 
     function _handleFee(uint nftId) private {
         uint halfFee = fee.div(2);
@@ -121,10 +134,10 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
 
             uint amountOutMin = 0;
             address[] memory path = new address[](2);
-            path[0] = IUniswapV2Router02(router).WETH();
+            path[0] = router.WETH();
             path[1] = matter;
             uint deadline = block.timestamp.add(20 minutes);
-            uint[] memory amounts = IUniswapV2Router02(router)
+            uint[] memory amounts = router
                 .swapExactETHForTokens{value: halfFee}(amountOutMin, path, indices[nftId].creator, deadline);
 
             emit FeeReceived(nftId, platform, indices[nftId].creator, halfFee, amounts[amounts.length-1]);

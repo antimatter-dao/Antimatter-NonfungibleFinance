@@ -25,13 +25,15 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     function initialize(string memory _uri, address _matter, address _platform, uint _fee) public initializer {
         super.__Ownable_init();
         super.__ReentrancyGuard_init();
-
         super.__ERC1155_init(_uri);
+
+        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
+        require(factory.getPair(_matter, router.WETH()) != address(0), "pair not exists");
+
         matter = _matter;
         platform = _platform;
         fee = _fee;
-        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
     }
 
     function createIndex(CreateReq memory req) external {

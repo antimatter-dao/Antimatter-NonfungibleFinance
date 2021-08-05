@@ -32,7 +32,11 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         require(factory.getPair(_matter, router.WETH()) != address(0), "pair not exists");
 
         matter = _matter;
-        platform = _platform;
+        if (_platform == address(0)) {
+            platform = address(this);
+        } else {
+            platform = _platform;
+        }
         fee = _fee;
     }
 
@@ -130,11 +134,16 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         factory = IUniswapV2Factory(factory_);
     }
 
+    function setURI(string memory _uri) external onlyOwner {
+        _setURI(_uri);
+    }
 
     function _handleFee(uint nftId) private {
         uint halfFee = fee.div(2);
         if (halfFee > 0) {
-            payable(platform).transfer(halfFee);
+            if (platform != address(this)) {
+                payable(platform).transfer(halfFee);
+            }
 
             uint amountOutMin = 0;
             address[] memory path = new address[](2);

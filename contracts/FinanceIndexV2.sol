@@ -23,6 +23,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     uint public fee;
 
     mapping(address => uint) public creatorTotalFee;
+    mapping(address => uint) public creatorClaimedFee;
 
     function initialize(string memory _uri, address _matter, address _platform, uint _fee) public initializer {
         super.__Ownable_init();
@@ -117,14 +118,15 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     }
 
     function creatorClaim() external nonReentrant {
-        if (creatorTotalFee[msg.sender] > 0) {
+        uint creatorFee = creatorTotalFee[msg.sender].sub(creatorClaimedFee[msg.sender]);
+        if (creatorFee > 0) {
             uint amountOutMin = 0;
             address[] memory path = new address[](2);
             path[0] = router.WETH();
             path[1] = matter;
             uint deadline = block.timestamp.add(20 minutes);
-            router
-                .swapExactETHForTokens{value: creatorTotalFee[msg.sender]}(amountOutMin, path, msg.sender, deadline);
+            router.swapExactETHForTokens{value: creatorFee}(amountOutMin, path, msg.sender, deadline);
+            creatorClaimedFee[msg.sender] = creatorTotalFee[msg.sender];
         }
     }
 

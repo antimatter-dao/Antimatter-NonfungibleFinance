@@ -135,8 +135,12 @@ describe('Index', function () {
             expect(await this.token2.balanceOf(this.f.address)).to.be.bignumber.equal(ether('0'));
 
             expect(await web3.eth.getBalance(platform)).to.be.bignumber.equal(ether('1000000.025'));
+            expect(await this.f.creatorTotalFee(creator)).to.be.bignumber.equal(ether('0.025'));
+            expect(await this.f.creatorClaimedFee(creator)).to.be.bignumber.equal(ether('0'));
             await this.f.creatorClaim({from: creator});
             expect(await this.matter.balanceOf(creator)).to.be.bignumber.equal(ether('2.491878899184378293'));
+            expect(await this.f.creatorTotalFee(creator)).to.be.bignumber.equal(ether('0.025'));
+            expect(await this.f.creatorClaimedFee(creator)).to.be.bignumber.equal(ether('0.025'));
         });
 
         it('when mint/burn index not exists should throw exception', async function () {

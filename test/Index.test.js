@@ -13,7 +13,7 @@ const UniswapV2Router02 = contract.fromArtifact(require('path').resolve('test/Un
 
 // Start test block
 describe('Index', function () {
-    const [ owner, governor, platform, creator, buyer, buyer2 ] = accounts;
+    const [ owner, platform, creator, buyer, buyer2 ] = accounts;
 
     beforeEach(async function () {
         // Deploy contract for each test
@@ -54,6 +54,10 @@ describe('Index', function () {
         expect(await this.f.router()).to.equal('0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D');
         await this.f.setUniswapV2Router(this.uniswapV2Router02.address, { from: owner });
         expect(await this.f.router()).to.equal(this.uniswapV2Router02.address);
+        expect(await this.f.factory()).to.equal('0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f');
+        await this.f.setUniswapV2Factory(this.uniswapV2Factory.address, { from: owner });
+        expect(await this.f.factory()).to.equal(this.uniswapV2Factory.address);
+
         let amountTokenDesired = ether('10000');
         let amountETHDesired = ether('100');
         let amountTokenMin = ether('1');
@@ -84,19 +88,23 @@ describe('Index', function () {
 
     describe("createIndex token1/token2", function () {
         beforeEach(async function () {
+            const name = 'test index';
+            const metadata = 'test metadata';
             const underlyingTokens = [
                 this.token1.address,
                 this.token2.address
             ];
             const underlyingAmounts = [
                 ether('100'),
-                ether('1000')
+                ether('100')
             ];
-            const createReq = [underlyingTokens, underlyingAmounts];
+            const createReq = [name, metadata, underlyingTokens, underlyingAmounts];
             await this.f.createIndex(createReq, { from: creator });
             const nftId = 0;
             expect(await this.f.nextNftId()).to.be.bignumber.equal(new BN('1'));
             const index = await this.f.getIndex(nftId);
+            expect(index.name).to.equal(name);
+            expect(index.metadata).to.equal(metadata);
             expect(index.creator).to.equal(creator);
             expect(index.underlyingTokens[0]).to.equal(underlyingTokens[0]);
             expect(index.underlyingAmounts[0]).to.be.bignumber.equal(underlyingAmounts[0]);
@@ -107,36 +115,42 @@ describe('Index', function () {
         it('when mint/burn should be ok', async function () {
             const nftId = 0;
             const nftAmount = new BN('10');
+            const amountInMaxs = [ether('30'), ether('50')];
             let beforeBuyer = await web3.eth.getBalance(buyer);
-            await this.f.mint(nftId, nftAmount, { from: buyer, value: ether('100'), gasPrice: 100e9 });
+            await this.f.mint(nftId, nftAmount, amountInMaxs, { from: buyer, value: ether('70'), gasPrice: 100e9 });
             let afterBuyer = await web3.eth.getBalance(buyer);
-            console.log(`Buyer ETH mint: ${web3.utils.fromWei(new BN(beforeBuyer).sub(new BN(afterBuyer)))}`);
+            console.log(`Buyer gas fee: ${web3.utils.fromWei(new BN(beforeBuyer).sub(new BN(afterBuyer)))}`);
             expect(await this.f.balanceOf(buyer, nftId)).to.be.bignumber.equal(nftAmount);
-            expect(await this.token1.balanceOf(this.f.address)).to.be.bignumber.equal(ether('100'));
+            expect(await this.token1.balanceOf(this.f.address)).to.be.bignumber.equal(ether('1000'));
             expect(await this.token2.balanceOf(this.f.address)).to.be.bignumber.equal(ether('1000'));
-            expect(await this.matter.balanceOf(creator)).to.be.bignumber.equal(ether('2.491878899184378293'));
 
+            const amountOutMins = [ether('0'), ether('0')];
             await this.f.setApprovalForAll(this.f.address, true, { from: buyer });
             beforeBuyer = await web3.eth.getBalance(buyer);
-            await this.f.burn(nftId, nftAmount, { from: buyer, gasPrice: 100e9 });
+            await this.f.burn(nftId, nftAmount, amountOutMins, { from: buyer, gasPrice: 100e9 });
             afterBuyer = await web3.eth.getBalance(buyer);
-            console.log(`Buyer ETH burn: ${web3.utils.fromWei(new BN(beforeBuyer).sub(new BN(afterBuyer)))}`);
+            console.log(`Buyer gas fee burn: ${web3.utils.fromWei(new BN(beforeBuyer).sub(new BN(afterBuyer)))}`);
             expect(await this.f.balanceOf(buyer, nftId)).to.be.bignumber.equal(new BN('0'));
             expect(await this.token1.balanceOf(this.f.address)).to.be.bignumber.equal(ether('0'));
             expect(await this.token2.balanceOf(this.f.address)).to.be.bignumber.equal(ether('0'));
-            expect(await this.matter.balanceOf(creator)).to.be.bignumber.equal(ether('4.982514348620625540'));
+
+            expect(await web3.eth.getBalance(platform)).to.be.bignumber.equal(ether('1000000.025'));
+            await this.f.creatorClaim({from: creator});
+            expect(await this.matter.balanceOf(creator)).to.be.bignumber.equal(ether('2.491878899184378293'));
         });
 
         it('when mint/burn index not exists should throw exception', async function () {
             const nftId = 1;
             const nftAmount = new BN('10');
+            const amountInMaxs = [ether('30'), ether('50')];
             await expectRevert(
-                this.f.mint(nftId, nftAmount, { from: buyer, value: ether('100') }),
+                this.f.mint(nftId, nftAmount, amountInMaxs, { from: buyer, value: ether('100') }),
                 'index not exists'
             );
 
+            const amountOutMins = [ether('0'), ether('0')];
             await expectRevert(
-                this.f.burn(nftId, nftAmount, { from: buyer, value: ether('100') }),
+                this.f.burn(nftId, nftAmount, amountOutMins, { from: buyer }),
                 'index not exists'
             );
         });

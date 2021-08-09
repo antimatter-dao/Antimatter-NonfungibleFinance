@@ -22,13 +22,15 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     address public platform;
     uint public fee;
 
+    mapping(address => uint) public creatorTotalFee;
+
     function initialize(string memory _uri, address _matter, address _platform, uint _fee) public initializer {
         super.__Ownable_init();
         super.__ReentrancyGuard_init();
         super.__ERC1155_init(_uri);
 
-        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
+        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);// bsc 0x10ED43C718714eb63d5aA57B78B54704E256024E
+        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);// bsc 0xca143ce32fe78f1f7019d7d551a6402fc5350c73
         require(factory.getPair(_matter, router.WETH()) != address(0), "pair not exists");
 
         matter = _matter;
@@ -70,12 +72,12 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
 
         uint totalInAmount = msg.value.sub(fee);
         uint remaining = totalInAmount;
+        address[] memory path = new address[](2);
+        path[0] = router.WETH();
+        uint deadline = block.timestamp.add(20 minutes);
         for (uint i = 0; i < index.underlyingTokens.length; i++) {
             uint amountOut = index.underlyingAmounts[i].mul(nftAmount);
-            address[] memory path = new address[](2);
-            path[0] = router.WETH();
             path[1] = index.underlyingTokens[i];
-            uint deadline = block.timestamp.add(20 minutes);
             uint[] memory amounts = router
                 .swapETHForExactTokens{value: amountInMaxs[i]}(amountOut, path, address(this), deadline);
             remaining = remaining.sub(amounts[0]);
@@ -88,31 +90,43 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         emit Mint(msg.sender, nftId, nftAmount, totalInAmount.sub(remaining));
     }
 
-        function burn(uint nftId, uint nftAmount, uint[] memory amountOutMins) external nonReentrant {
-            Index memory index = indices[nftId];
-            require(index.creator != address(0), "index not exists");
-            require(index.underlyingTokens.length == amountOutMins.length, "invalid length of amountOutMins");
+    function burn(uint nftId, uint nftAmount, uint[] memory amountOutMins) external nonReentrant {
+        Index memory index = indices[nftId];
+        require(index.creator != address(0), "index not exists");
+        require(index.underlyingTokens.length == amountOutMins.length, "invalid length of amountOutMins");
 
-            uint totalOutAmount = 0;
-            for (uint i = 0; i < index.underlyingTokens.length; i++) {
-                uint amountIn = index.underlyingAmounts[i].mul(nftAmount);
-                address[] memory path = new address[](2);
-                path[0] = index.underlyingTokens[i];
-                path[1] = router.WETH();
-                uint deadline = block.timestamp.add(20 minutes);
-                IERC20Upgradeable(index.underlyingTokens[i]).approve(address(router), amountIn);
-                uint[] memory amounts = router
-                    .swapExactTokensForETH(amountIn, amountOutMins[i], path, address(this), deadline);
-                totalOutAmount = totalOutAmount.add(amounts[amounts.length-1]);
-            }
-
-            super._burn(msg.sender, nftId, nftAmount);
-            if (totalOutAmount > 0) {
-                payable(msg.sender).transfer(totalOutAmount);
-            }
-
-            emit Burn(msg.sender, nftId, nftAmount, totalOutAmount);
+        uint totalOutAmount = 0;
+        address[] memory path = new address[](2);
+        path[1] = router.WETH();
+        uint deadline = block.timestamp.add(20 minutes);
+        for (uint i = 0; i < index.underlyingTokens.length; i++) {
+            uint amountIn = index.underlyingAmounts[i].mul(nftAmount);
+            path[0] = index.underlyingTokens[i];
+            IERC20Upgradeable(index.underlyingTokens[i]).approve(address(router), amountIn);
+            uint[] memory amounts = router
+                .swapExactTokensForETH(amountIn, amountOutMins[i], path, address(this), deadline);
+            totalOutAmount = totalOutAmount.add(amounts[amounts.length-1]);
         }
+
+        super._burn(msg.sender, nftId, nftAmount);
+        if (totalOutAmount > 0) {
+            payable(msg.sender).transfer(totalOutAmount);
+        }
+
+        emit Burn(msg.sender, nftId, nftAmount, totalOutAmount);
+    }
+
+    function creatorClaim() external nonReentrant {
+        if (creatorTotalFee[msg.sender] > 0) {
+            uint amountOutMin = 0;
+            address[] memory path = new address[](2);
+            path[0] = router.WETH();
+            path[1] = matter;
+            uint deadline = block.timestamp.add(20 minutes);
+            router
+                .swapExactETHForTokens{value: creatorTotalFee[msg.sender]}(amountOutMin, path, msg.sender, deadline);
+        }
+    }
 
     function approveERC20(address token, address spender, uint amount) external onlyOwner {
         IERC20Upgradeable(token).approve(spender, amount);
@@ -144,16 +158,8 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             if (platform != address(this)) {
                 payable(platform).transfer(halfFee);
             }
-
-            uint amountOutMin = 0;
-            address[] memory path = new address[](2);
-            path[0] = router.WETH();
-            path[1] = matter;
-            uint deadline = block.timestamp.add(20 minutes);
-            uint[] memory amounts = router
-                .swapExactETHForTokens{value: halfFee}(amountOutMin, path, indices[nftId].creator, deadline);
-
-            emit FeeReceived(nftId, platform, indices[nftId].creator, halfFee, amounts[amounts.length-1]);
+            creatorTotalFee[indices[nftId].creator] = creatorTotalFee[indices[nftId].creator].add(halfFee);
+            emit FeeReceived(nftId, platform, indices[nftId].creator, halfFee, halfFee);
         }
     }
 

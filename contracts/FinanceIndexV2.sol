@@ -31,15 +31,19 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         super.__ERC1155_init(_uri);
 
         router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);// bsc 0x10ED43C718714eb63d5aA57B78B54704E256024E
-        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);// bsc 0xca143ce32fe78f1f7019d7d551a6402fc5350c73
-        require(factory.getPair(_matter, router.WETH()) != address(0), "pair not exists");
+        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);// bsc 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73
 
+        if (_matter != address(0)) {
+            require(factory.getPair(_matter, router.WETH()) != address(0), "pair not exists");
+        }
         matter = _matter;
+
         if (_platform == address(0)) {
             platform = address(this);
         } else {
             platform = _platform;
         }
+
         fee = _fee;
     }
 
@@ -120,13 +124,17 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     function creatorClaim() external nonReentrant {
         uint creatorFee = creatorTotalFee[msg.sender].sub(creatorClaimedFee[msg.sender]);
         if (creatorFee > 0) {
-            uint amountOutMin = 0;
-            address[] memory path = new address[](2);
-            path[0] = router.WETH();
-            path[1] = matter;
-            uint deadline = block.timestamp.add(20 minutes);
-            router.swapExactETHForTokens{value: creatorFee}(amountOutMin, path, msg.sender, deadline);
-            creatorClaimedFee[msg.sender] = creatorTotalFee[msg.sender];
+            if (matter != address(0)) {
+                uint amountOutMin = 0;
+                address[] memory path = new address[](2);
+                path[0] = router.WETH();
+                path[1] = matter;
+                uint deadline = block.timestamp.add(20 minutes);
+                router.swapExactETHForTokens{value: creatorFee}(amountOutMin, path, msg.sender, deadline);
+                creatorClaimedFee[msg.sender] = creatorTotalFee[msg.sender];
+            } else {
+                payable(msg.sender).transfer(creatorFee);
+            }
         }
     }
 

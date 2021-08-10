@@ -5,7 +5,7 @@ async function main() {
     const uri = 'https://antimatter.finance/';
     const matter = '0x9b99cca871be05119b2012fd4474731dd653febe';
     const platform = '0x1FA4C91Fc877110bD0E93Ce1CC52a5d9801bc29d';
-    const fee = '50000000000000000'; // 0.05 ether
+    const fee = ethers.utils.parseEther('0.005');
     const contract = await upgrades.deployProxy(Contract, [uri, matter, platform, fee], 'initialize');
     await contract.deployed();
 

@@ -131,10 +131,10 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
                 path[1] = matter;
                 uint deadline = block.timestamp.add(20 minutes);
                 router.swapExactETHForTokens{value: creatorFee}(amountOutMin, path, msg.sender, deadline);
-                creatorClaimedFee[msg.sender] = creatorTotalFee[msg.sender];
             } else {
                 payable(msg.sender).transfer(creatorFee);
             }
+            creatorClaimedFee[msg.sender] = creatorTotalFee[msg.sender];
         }
     }
 

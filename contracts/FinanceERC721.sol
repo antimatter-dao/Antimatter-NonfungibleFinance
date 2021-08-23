@@ -12,6 +12,14 @@ contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
         super.__ERC721_init(name, symbol);
     }
 
+    function create(CreateReq memory req, ClaimParam[] memory claims) external {
+        super._create(req, claims, 1);
+    }
+
+    function claim(uint nftId) external {
+        super._claim(nftId, 1);
+    }
+
     function _mintNFT(address to, uint tokenId, uint amount) internal override {
         require(amount == 1, "invalid amount");
         super._mint(to, tokenId);

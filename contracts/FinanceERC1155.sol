@@ -12,6 +12,14 @@ contract FinanceERC1155 is FinanceBase, ERC1155Upgradeable {
         super.__ERC1155_init(uri);
     }
 
+    function create(CreateReq memory req, ClaimParam[] memory claims, uint nftAmount) external {
+        super._create(req, claims, nftAmount);
+    }
+
+    function claim(uint nftId, uint nftAmount) external {
+        super._claim(nftId, nftAmount);
+    }
+
     function _mintNFT(address to, uint tokenId, uint amount) internal override {
         super._mint(to, tokenId, amount, "");
     }

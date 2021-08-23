@@ -2,9 +2,7 @@ const { ethers, upgrades } = require("hardhat");
 
 async function main() {
     const Contract = await ethers.getContractFactory("FinanceERC721");
-    const contract = await upgrades.deployProxy(Contract, [], 'initialize');
-    const baseUri = '';
-    await contract.setBaseURI(baseUri);
+    const contract = await upgrades.deployProxy(Contract, ["Finance", "FNC"], 'initialize');
     await contract.deployed();
 
     console.log("FinanceERC721 deployed to:", contract.address);

@@ -8,7 +8,7 @@ import "./FinanceBase.sol";
 contract FinanceERC1155 is FinanceBase, ERC1155Upgradeable {
 
     function initialize(string memory uri) public initializer {
-        super.initialize();
+        super.init();
         super.__ERC1155_init(uri);
     }
 

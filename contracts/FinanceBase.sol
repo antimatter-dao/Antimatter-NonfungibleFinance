@@ -13,7 +13,7 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint;
 
-    function initialize() public initializer {
+    function init() public initializer {
         super.__Ownable_init();
         super.__ReentrancyGuard_init();
     }

@@ -8,7 +8,7 @@ import "./FinanceBase.sol";
 contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
 
     function initialize(string memory name, string memory symbol) public initializer {
-        super.initialize();
+        super.init();
         super.__ERC721_init(name, symbol);
     }
 

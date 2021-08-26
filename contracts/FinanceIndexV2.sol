@@ -167,7 +167,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
     function uri(uint256 id) public view override returns (string memory) {
         string memory baseURI = super.uri(id);
         return bytes(baseURI).length > 0
-            ? string(abi.encodePacked(baseURI, addressToString(address(this)), "/", id.toString()))
+            ? string(abi.encodePacked(baseURI, uint256(uint160(address(this))).toHexString(), "/", id.toString()))
             : '';
     }
 

@@ -44,7 +44,7 @@ contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
 
         string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0
-            ? string(abi.encodePacked(baseURI, addressToString(address(this)), "/", tokenId.toString()))
+            ? string(abi.encodePacked(baseURI, uint256(uint160(address(this))).toHexString(), "/", tokenId.toString()))
             : '';
     }
 

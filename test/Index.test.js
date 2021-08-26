@@ -159,4 +159,17 @@ describe('Index', function () {
             );
         });
     });
+
+    it('when setURI should be ok', async function () {
+        const uri = 'https://antimatter.finance/';
+        await expectRevert(
+            this.f.setURI(uri, { from: buyer }),
+            'Ownable: caller is not the owner'
+        );
+
+        await this.f.setURI(uri, { from: owner });
+
+        console.log(this.f.address);
+        console.log(await this.f.uri(0));
+    });
 });

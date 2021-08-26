@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
@@ -15,6 +16,7 @@ import "./IndexBase.sol";
 contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC1155Upgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint;
+    using StringsUpgradeable for uint;
 
     IUniswapV2Router02 public router;
     IUniswapV2Factory public factory;
@@ -160,6 +162,13 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
 
     function setURI(string memory _uri) external onlyOwner {
         _setURI(_uri);
+    }
+
+    function uri(uint256 id) public view override returns (string memory) {
+        string memory baseURI = super.uri(id);
+        return bytes(baseURI).length > 0
+            ? string(abi.encodePacked(baseURI, addressToString(address(this)), "/", id.toString()))
+            : '';
     }
 
     function _handleFee(uint nftId) private {

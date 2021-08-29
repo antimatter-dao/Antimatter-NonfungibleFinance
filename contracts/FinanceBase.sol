@@ -47,7 +47,7 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
         pools[nftId] = pool;
 
         for(uint i = 0; i < _claims.length; i++) {
-            claims[nftId][i] = _claims[i];
+            claims[nftId].push(_claims[i]);
         }
 
         emit Created(msg.sender, nftId, req.name);

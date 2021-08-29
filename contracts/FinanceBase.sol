@@ -7,11 +7,20 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableMapUpgradeable.sol";
 import "./StructBase.sol";
 
 abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+    using EnumerableMapUpgradeable for EnumerableMapUpgradeable.Map;
+
+    EnumerableSetUpgradeable.AddressSet addrSet1;
+    EnumerableSetUpgradeable.AddressSet addrSet2;
+    mapping(address => uint) addrValue1;
+    mapping(address => uint) addrValue2;
 
     function init() public initializer {
         super.__Ownable_init();
@@ -26,7 +35,29 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
         require(req.claimType == ClaimType.LOCKER, "un-support claimType");
         require(req.underlyingTokens.length > 0, "invalid length of underlyingTokens");
         require(req.underlyingTokens.length == req.underlyingAmounts.length, "invalid length of underlyingTokens");
-        require(_claims.length > 0, "invalid length of claims");
+
+        if (_claims.length > 0) {
+            for (uint i = 0; i < req.underlyingTokens.length; i++) {
+                addrSet1.add(req.underlyingTokens[i]);
+                addrValue1[req.underlyingTokens[i]] += req.underlyingAmounts[i];
+            }
+            for (uint i = 0; i < _claims.length; i++) {
+                addrSet2.add(_claims[i].token);
+                addrValue2[_claims[i].token] += _claims[i].amount;
+            }
+            require(addrSet1.length() == addrSet2.length(), "different count of tokens");
+
+            for (uint i = 0; i < addrSet1.length(); i++) {
+                require(addrValue1[addrSet1.at(i)] == addrValue1[addrSet1.at(i)], "different amount of tokens");
+                addrSet2.remove(addrSet1.at(i));
+            }
+
+            require(addrSet2.length() == 0, "different tokens addresses");
+
+            for (uint i = 0; i < addrSet1.length(); i++) {
+                addrSet1.remove(addrSet1.at(i));
+            }
+        }
 
         for (uint i = 0; i < req.underlyingTokens.length; i++) {
             IERC20Upgradeable(req.underlyingTokens[i])
@@ -58,18 +89,23 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
         require(pool.creator != address(0), "pool not exists");
         require(pool.claimType == ClaimType.LOCKER, "un-support claimType");
 
-        for (uint i = 0; i < claims[nftId].length; i++) {
-            ClaimParam memory claim = claims[nftId][i];
-            if (claims[nftId][i].claimAt <= block.timestamp && !claimed[nftId][i]) {
-                claimed[nftId][i]= true;
-                IERC20Upgradeable(claims[nftId][i].token).safeTransfer(msg.sender, claims[nftId][i].amount);
-                if (i == claims[nftId].length-1) {
-                    _burnNFT(msg.sender, nftId, pool.nftAmount);
+        if (claims[nftId].length == 0) {
+            for (uint i = 0; i < pool.underlyingTokens.length; i++) {
+                IERC20Upgradeable(pool.underlyingTokens[i]).safeTransfer(msg.sender, pool.underlyingAmounts[i]);
+            }
+            _burnNFT(msg.sender, nftId, pool.nftAmount);
+        } else {
+            for (uint i = 0; i < claims[nftId].length; i++) {
+                ClaimParam memory claim = claims[nftId][i];
+                if (claims[nftId][i].claimAt <= block.timestamp && !claimed[nftId][i]) {
+                    claimed[nftId][i]= true;
+                    IERC20Upgradeable(claims[nftId][i].token).safeTransfer(msg.sender, claims[nftId][i].amount);
+                    if (i == claims[nftId].length-1) {
+                        _burnNFT(msg.sender, nftId, pool.nftAmount);
+                    }
                 }
             }
         }
-
-        emit Claimed(msg.sender, nftId, pool.underlyingTokens, pool.underlyingAmounts);
     }
 
     function approveERC20(address token, address spender, uint amount) external onlyOwner {

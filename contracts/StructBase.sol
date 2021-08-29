@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+//import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 contract StructBase {
-    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
+//    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
     enum ClaimType {
         LOCKER
@@ -36,8 +36,6 @@ contract StructBase {
         uint[] underlyingAmounts;
         // NFT amount
         uint nftAmount;
-        // the delay timestamp in seconds when buyers can claim after pool filled
-        uint claimAt;
         ClaimType claimType;
     }
 
@@ -49,7 +47,7 @@ contract StructBase {
 
     mapping(uint => Pool) public pools;
 
-    EnumerableSetUpgradeable.UintSet internal claimIndex;
+//    EnumerableSetUpgradeable.UintSet internal claimIndex;
 
     mapping(uint => ClaimParam[]) public claims;
     mapping(uint => mapping(uint => bool)) public claimed;
@@ -59,6 +57,13 @@ contract StructBase {
         return pools[nftId];
     }
 
+    function getClaim(uint nftId, uint index) public view returns(ClaimParam memory) {
+        return claims[nftId][index];
+    }
+
+    function getClaimLength(uint nftId) public view returns(uint) {
+        return claims[nftId].length;
+    }
+
     event Created(address indexed sender, uint nftId, string name);
-    event Claimed(address indexed sender, uint nftId, address[] underlyingTokens, uint[] underlyingAmounts);
 }

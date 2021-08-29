@@ -52,7 +52,7 @@ describe('FinanceERC721', function () {
             const claimAt = new BN('0');
             const claims = [[token, amount, claimAt]];
 
-            const nftId = 0;
+            const nftId = new BN('0');
             await this.erc20Token.approve(this.f.address, underlyingAmounts[0], { from: creator });
             await this.f.create(createReq, claims, { from: creator });
 
@@ -73,13 +73,17 @@ describe('FinanceERC721', function () {
             expect(claim.claimAt).to.be.bignumber.equal(claimAt);
 
             expect(await this.erc20Token.balanceOf(creator)).to.be.bignumber.equal(ether('9980'));
-            expect(await this.erc20Token.balanceOf(buyer)).to.be.bignumber.equal(ether('10000'));
             expect(await this.erc20Token.balanceOf(this.f.address)).to.be.bignumber.equal(ether('10020'));
-            expect(await this.f.ownerOf(creator)).to.be.bignumber.equal(nftId);
+            expect(await this.f.ownerOf(nftId)).to.equal(creator);
         });
 
         it('when claim should be ok', async function () {
-
+            const nftId = new BN('0');
+            expect(await this.f.ownerOf(nftId)).to.equal(creator);
+            await this.f.claim(nftId, { from: creator });
+            await expectRevert(this.f.ownerOf(nftId), 'ERC721: owner query for nonexistent token');
+            expect(await this.erc20Token.balanceOf(creator)).to.be.bignumber.equal(ether('10000'));
+            expect(await this.erc20Token.balanceOf(this.f.address)).to.be.bignumber.equal(ether('10000'));
         });
 
     });

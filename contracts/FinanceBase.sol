@@ -30,7 +30,7 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
 
         for (uint i = 0; i < req.underlyingTokens.length; i++) {
             IERC20Upgradeable(req.underlyingTokens[i])
-                .safeTransfer(address(this), req.underlyingAmounts[i].mul(nftAmount));
+                .safeTransferFrom(msg.sender, address(this), req.underlyingAmounts[i].mul(nftAmount));
         }
 
         uint nftId = nextNftId++;

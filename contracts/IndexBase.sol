@@ -32,6 +32,14 @@ contract IndexBase {
         return indices[nftId];
     }
 
+    function getUnderlyingTokensLength(uint nftId) public view returns(uint) {
+        return indices[nftId].underlyingTokens.length;
+    }
+
+    function getUnderlyingToken(uint nftId, uint index) public view returns(address) {
+        return indices[nftId].underlyingTokens[index];
+    }
+
     event IndexCreated(address indexed sender, uint nftId, string name);
     event Mint(address indexed sender, uint nftId, uint nftAmount, uint totalSpend);
     event Burn(address indexed sender, uint nftId, uint nftAmount, uint totalIncome);

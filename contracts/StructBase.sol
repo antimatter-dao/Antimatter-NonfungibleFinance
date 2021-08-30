@@ -57,6 +57,14 @@ contract StructBase {
         return pools[nftId];
     }
 
+    function getUnderlyingTokensLength(uint nftId) public view returns(uint) {
+        return pools[nftId].underlyingTokens.length;
+    }
+
+    function getUnderlyingToken(uint nftId, uint index) public view returns(address) {
+        return pools[nftId].underlyingTokens[index];
+    }
+
     function getClaim(uint nftId, uint index) public view returns(ClaimParam memory) {
         return claims[nftId][index];
     }

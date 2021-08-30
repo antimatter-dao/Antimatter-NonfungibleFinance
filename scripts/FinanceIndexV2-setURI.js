@@ -1,9 +1,9 @@
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const proxyAddress = '';
-    const contract = await ethers.getContractAt("FinanceERC721", proxyAddress);
-    const uri = "https://antimatter.finance/";
+    const proxyAddress = '0x53E416C1Bd19bAA9EE334061d900f58A12BB64e4';
+    const contract = await ethers.getContractAt("FinanceIndexV2", proxyAddress);
+    const uri = "https://nftapi.antimatter.finance/app/getMetadata";
     const tx = await contract.setURI(uri);
     console.log(tx);
 

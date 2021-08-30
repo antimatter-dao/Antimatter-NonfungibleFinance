@@ -25,14 +25,14 @@ describe('Index', function () {
         this.matter = await ERC20.new('MATTER Token', 'MATTER', { from: owner });
 
         // initialize contract
-        const uri = 'https://nft.token/';
+        const uri = 'https://nftapi.antimatter.finance/app/getMetadata';
         const fee = ether('0.05');
         await this.f.initialize(uri, this.matter.address, platform, fee, { from: owner });
         await expectRevert(
             this.f.initialize(uri, this.matter.address, platform, fee, { from: owner }),
             'Initializable: contract is already initialized.'
         );
-        expect(await this.f.uri(0)).to.equal(`${uri}${this.f.address.toLowerCase()}/0`);
+        expect(await this.f.uri(0)).to.equal(`${uri}?nftId=0&chainId=1`);
         expect(await this.f.matter()).to.equal(this.matter.address);
         expect(await this.f.platform()).to.equal(platform);
         expect(await this.f.fee()).to.be.bignumber.equal(fee);
@@ -161,7 +161,7 @@ describe('Index', function () {
     });
 
     it('when setURI should be ok', async function () {
-        const uri = 'https://antimatter.finance/';
+        const uri = 'https://nftapi.antimatter.finance/app/getMetadata';
         await expectRevert(
             this.f.setURI(uri, { from: buyer }),
             'Ownable: caller is not the owner'
@@ -171,6 +171,6 @@ describe('Index', function () {
 
         console.log(this.f.address);
         console.log(await this.f.uri(0));
-        expect(await this.f.uri(0)).to.equal(`${uri}${this.f.address.toLowerCase()}/0`);
+        expect(await this.f.uri(0)).to.equal(`${uri}?nftId=0&chainId=1`);
     });
 });

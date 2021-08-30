@@ -39,13 +39,13 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
         if (_claims.length > 0) {
             for (uint i = 0; i < req.underlyingTokens.length; i++) {
                 addrSet1.add(req.underlyingTokens[i]);
-                addrValue1[req.underlyingTokens[i]] += req.underlyingAmounts[i];
+                addrValue1[req.underlyingTokens[i]] = addrValue1[req.underlyingTokens[i]].add(req.underlyingAmounts[i]);
             }
             for (uint i = 0; i < _claims.length; i++) {
                 addrSet2.add(_claims[i].token);
-                addrValue2[_claims[i].token] += _claims[i].amount;
+                addrValue2[_claims[i].token] = addrValue2[_claims[i].token].add(_claims[i].amount);
             }
-            require(addrSet1.length() == addrSet2.length(), "different count of tokens");
+            require(addrSet1.length() == addrSet2.length(), "different length of tokens");
 
             for (uint i = 0; i < addrSet1.length(); i++) {
                 require(addrValue1[addrSet1.at(i)] == addrValue1[addrSet1.at(i)], "different amount of tokens");

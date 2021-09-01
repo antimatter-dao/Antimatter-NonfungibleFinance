@@ -26,10 +26,17 @@ describe('FinanceERC721', function () {
         this.erc20Token = await ERC20.new('Test Token', 'TST', { from: owner });
         this.erc20Token2 = await ERC20.new('Test Token', 'TST', { from: owner });
 
+        const name = 'Antimatter Locker';
+        const symbol = 'Locker';
+        const baseURI = 'https://nftapi.antimatter.finance/app/getMetadata';
         // initialize contract
-        await this.f.initialize("NFT Token", "NT", { from: owner });
-        await expectRevert(this.f.initialize("NFT Token", "NT", { from: owner }), 'Initializable: contract is already initialized.');
+        await this.f.initialize(name, symbol, baseURI, { from: owner });
+        await expectRevert(this.f.initialize(name, symbol, baseURI, { from: owner }),
+            'Initializable: contract is already initialized.'
+        );
         await this.f.transferOwnership(governor, { from: owner });
+        expect(await this.f.name()).to.equal(name);
+        expect(await this.f.symbol()).to.equal(symbol);
 
         // mint ERC20 token
         await this.erc20Token.mint(owner,  ether('10000'), { from: owner });
@@ -56,7 +63,6 @@ describe('FinanceERC721', function () {
 
             const token1 = this.erc20Token.address;
             const token2 = this.erc20Token2.address;
-            const amount = ether('20');
             const claimAt = new BN('0');
             const claims = [
                 [token1, ether('5'), claimAt],
@@ -94,6 +100,8 @@ describe('FinanceERC721', function () {
             expect(await this.erc20Token.balanceOf(creator)).to.be.bignumber.equal(ether('9980'));
             expect(await this.erc20Token.balanceOf(this.f.address)).to.be.bignumber.equal(ether('10020'));
             expect(await this.f.ownerOf(nftId)).to.equal(creator);
+
+            expect(await this.f.tokenURI(0)).to.equal(`https://nftapi.antimatter.finance/app/getMetadata?nftId=0&chainId=1`);
         });
 
         it('when claim should be ok', async function () {

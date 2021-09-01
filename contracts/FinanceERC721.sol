@@ -11,9 +11,10 @@ contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
 
     string baseURI;
 
-    function initialize(string memory name, string memory symbol) public initializer {
+    function initialize(string memory name, string memory symbol, string memory _baseURI) public initializer {
         super.init();
         super.__ERC721_init(name, symbol);
+        baseURI = _baseURI;
     }
 
     function create(CreateReq memory req, ClaimParam[] memory claims) external {

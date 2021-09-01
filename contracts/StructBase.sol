@@ -2,10 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-//import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
-
 contract StructBase {
-//    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
     enum ClaimType {
         LOCKER
@@ -47,8 +44,6 @@ contract StructBase {
 
     mapping(uint => Pool) public pools;
 
-//    EnumerableSetUpgradeable.UintSet internal claimIndex;
-
     mapping(uint => ClaimParam[]) public claims;
     mapping(uint => mapping(uint => bool)) public claimed;
     uint public nextNftId;
@@ -74,4 +69,5 @@ contract StructBase {
     }
 
     event Created(address indexed sender, uint nftId, string name);
+    event Claimed(address indexed sender, address indexed token, uint amount);
 }

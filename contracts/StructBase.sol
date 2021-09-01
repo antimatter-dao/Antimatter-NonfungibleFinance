@@ -68,6 +68,6 @@ contract StructBase {
         return claims[nftId].length;
     }
 
-    event Created(address indexed sender, uint nftId, string name);
-    event Claimed(address indexed sender, address indexed token, uint amount);
+    event Created(address indexed sender, uint indexed nftId, string name);
+    event Claimed(address indexed sender, uint indexed nftId, address token, uint amount);
 }

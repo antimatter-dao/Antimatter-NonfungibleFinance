@@ -95,7 +95,7 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
         if (claims[nftId].length == 0) {
             for (uint i = 0; i < pool.underlyingTokens.length; i++) {
                 IERC20Upgradeable(pool.underlyingTokens[i]).safeTransfer(msg.sender, pool.underlyingAmounts[i]);
-                emit Claimed(msg.sender, pool.underlyingTokens[i], pool.underlyingAmounts[i]);
+                emit Claimed(msg.sender, nftId, pool.underlyingTokens[i], pool.underlyingAmounts[i]);
             }
             _burnNFT(msg.sender, nftId, pool.nftAmount);
         } else {
@@ -104,7 +104,7 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
                 if (claims[nftId][i].claimAt <= block.timestamp && !claimed[nftId][i]) {
                     claimed[nftId][i]= true;
                     IERC20Upgradeable(claims[nftId][i].token).safeTransfer(msg.sender, claims[nftId][i].amount);
-                    emit Claimed(msg.sender, claims[nftId][i].token, claims[nftId][i].amount);
+                    emit Claimed(msg.sender, nftId, claims[nftId][i].token, claims[nftId][i].amount);
                 if (i == claims[nftId].length-1) {
                         _burnNFT(msg.sender, nftId, pool.nftAmount);
                     }

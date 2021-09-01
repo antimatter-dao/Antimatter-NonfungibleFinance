@@ -32,8 +32,12 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         super.__ReentrancyGuard_init();
         super.__ERC1155_init(_uri);
 
-        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);// bsc 0x10ED43C718714eb63d5aA57B78B54704E256024E
-        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);// bsc 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73
+        // bsc 0x10ED43C718714eb63d5aA57B78B54704E256024E
+        // fantom 0xF491e7B69E4244ad4002BC14e878a34207E38c29
+        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+        // bsc 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73
+        // fantom 0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3
+        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
 
         if (_matter != address(0)) {
             require(factory.getPair(_matter, router.WETH()) != address(0), "pair not exists");

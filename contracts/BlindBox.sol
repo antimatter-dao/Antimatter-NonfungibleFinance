@@ -69,6 +69,14 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(nftGiftSet.length() == 0, "withdraw all failed");
     }
 
+    function setDrawFee(uint drawFee_) external onlyOwner {
+        drawFee = drawFee_;
+    }
+
+    function setNftGiftAddress(address nftGift_) external onlyOwner {
+        nftGift = nftGift_;
+    }
+
     function getGiftLength() public view returns (uint) {
         return nftGiftSet.length();
     }

@@ -22,6 +22,7 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
     address public matter;
     uint public drawDeposit;
     uint public claimAt;
+    mapping(address => bool) public claimed;
     mapping(address => bool) public participated;
     EnumerableSetUpgradeable.UintSet nftGiftSet;
 
@@ -73,10 +74,11 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
         }
     }
 
-    function claim(uint nftId) external {
+    function claim(uint nftId) external nonReentrant {
+        require(!claimed[msg.sender], "claimed");
         require(claimAt < block.timestamp, "claim not ready");
+        claimed[msg.sender] = true;
         IERC20Upgradeable(matter).safeTransfer(msg.sender, drawDeposit);
-        super._burn(nftId);
 
         emit Claimed(msg.sender, nftId, matter, drawDeposit);
     }

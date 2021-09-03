@@ -64,7 +64,7 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
         for (uint i = 0; i < length; i++) {
             uint tokenId = i+1;
             require(!nftGiftSet.contains(tokenId), "duplicated token id");
-            IERC721Upgradeable(this).safeTransferFrom(msg.sender, address(this), tokenId);
+            super._mint(address(this), tokenId);
             nftGiftSet.add(tokenId);
         }
     }

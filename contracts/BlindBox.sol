@@ -44,7 +44,7 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
         drawDeposit = drawFee_;
         claimAt = block.timestamp.add(180 days);
 
-        packBox(66);
+        _packBox(1, 66);
     }
 
     function draw() external nonReentrant canDraw {
@@ -60,8 +60,12 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
         emit Drew(msg.sender, tokenId);
     }
 
-    function packBox(uint length) internal {
-        for (uint i = 0; i < length; i++) {
+    function packBox(uint fromId, uint toId) external onlyOwner {
+        _packBox(fromId, toId);
+    }
+
+    function _packBox(uint fromId, uint toId) private {
+        for (uint i = fromId; i < toId; i++) {
             uint tokenId = i+1;
             require(!nftGiftSet.contains(tokenId), "duplicated token id");
             super._mint(address(this), tokenId);

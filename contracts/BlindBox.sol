@@ -23,8 +23,9 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     event Drew(address indexed sender, uint indexed tokenId);
 
-    function initialize(address _matter, uint _drawFee) public initializer {
+    function initialize(address _matter, address _nftGift, uint _drawFee) public initializer {
         matter = _matter;
+        nftGift = _nftGift;
         drawFee = _drawFee;
     }
 

@@ -100,7 +100,6 @@ abstract contract FinanceBase is StructBase, OwnableUpgradeable, ReentrancyGuard
             _burnNFT(msg.sender, nftId, pool.nftAmount);
         } else {
             for (uint i = 0; i < claims[nftId].length; i++) {
-                ClaimParam memory claim = claims[nftId][i];
                 if (claims[nftId][i].claimAt <= block.timestamp && !claimed[nftId][i]) {
                     claimed[nftId][i]= true;
                     IERC20Upgradeable(claims[nftId][i].token).safeTransfer(msg.sender, claims[nftId][i].amount);

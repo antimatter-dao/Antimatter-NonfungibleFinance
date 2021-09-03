@@ -11,10 +11,10 @@ contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
 
     string baseURI;
 
-    function initialize(string memory name, string memory symbol, string memory _baseURI) public initializer {
+    function initialize(string memory name, string memory symbol, string memory baseURI_) public initializer {
         super.init();
         super.__ERC721_init(name, symbol);
-        baseURI = _baseURI;
+        baseURI = baseURI_;
     }
 
     function create(CreateReq memory req, ClaimParam[] memory claims) external {
@@ -25,8 +25,8 @@ contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
         super._claim(nftId, 1);
     }
 
-    function setBaseURI(string memory _baseURI) external onlyOwner {
-        baseURI = _baseURI;
+    function setBaseURI(string memory baseURI_) external onlyOwner {
+        baseURI = baseURI_;
     }
 
     function _mintNFT(address to, uint tokenId, uint amount) internal override {
@@ -43,9 +43,9 @@ contract FinanceERC721 is FinanceBase, ERC721Upgradeable {
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
-        string memory baseURI = _baseURI();
-        return bytes(baseURI).length > 0
-        ? string(abi.encodePacked(baseURI, "?nftId=", tokenId.toString(), "&chainId=", block.chainid.toString()))
+        string memory baseURI_ = _baseURI();
+        return bytes(baseURI_).length > 0
+        ? string(abi.encodePacked(baseURI_, "?nftId=", tokenId.toString(), "&chainId=", block.chainid.toString()))
             : '';
     }
 

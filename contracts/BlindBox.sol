@@ -22,7 +22,6 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
     address public matter;
     uint public drawDeposit;
     uint public claimAt;
-    uint public claimDuration;
     mapping(address => bool) public participated;
     EnumerableSetUpgradeable.UintSet nftGiftSet;
 

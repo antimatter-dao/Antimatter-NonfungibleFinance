@@ -8,7 +8,7 @@ async function main() {
     const matter = '0x9b99cca871be05119b2012fd4474731dd653febe';
     const drawFee = ethers.utils.parseEther('2000');
     const contract = await upgrades.deployProxy(Contract, [
-        name, symbol, baseURI, matter, drawFee,
+        name, symbol, baseURI, matter,
     ], 'initialize');
     await contract.deployed();
 

@@ -33,8 +33,7 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
         string memory name_,
         string memory symbol_,
         string memory baseURI_,
-        address matter_,
-        uint drawFee_
+        address matter_
     ) public initializer {
         super.__Ownable_init();
         super.__ReentrancyGuard_init();
@@ -42,7 +41,7 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
 
         baseURI = baseURI_;
         matter = matter_;
-        drawDeposit = drawFee_;
+        drawDeposit = 2000 ether;
         claimAt = block.timestamp.add(180 days);
 
         _packBox(1, 66);
@@ -66,8 +65,7 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
     }
 
     function _packBox(uint fromId, uint toId) private {
-        for (uint i = fromId; i < toId; i++) {
-            uint tokenId = i+1;
+        for (uint tokenId = fromId; tokenId <= toId; tokenId++) {
             require(!nftGiftSet.contains(tokenId), "duplicated token id");
             super._mint(address(this), tokenId);
             nftGiftSet.add(tokenId);

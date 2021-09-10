@@ -22,7 +22,9 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
     address public matter;
     uint public drawDeposit;
     uint public claimAt;
-    mapping(address => bool) public claimed;
+    // nft Id => claimed
+    mapping(uint => bool) public claimed;
+    // user address => participated
     mapping(address => bool) public participated;
     EnumerableSetUpgradeable.UintSet nftGiftSet;
 
@@ -33,7 +35,9 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
         string memory name_,
         string memory symbol_,
         string memory baseURI_,
-        address matter_
+        address matter_,
+        uint drawDeposit_,
+        uint claimDelay_
     ) public initializer {
         super.__Ownable_init();
         super.__ReentrancyGuard_init();
@@ -41,13 +45,13 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
 
         baseURI = baseURI_;
         matter = matter_;
-        drawDeposit = 2000 ether;
-        claimAt = block.timestamp.add(180 days);
+        drawDeposit = drawDeposit_;
+        claimAt = block.timestamp.add(claimDelay_);
 
         _packBox(1, 66);
     }
 
-    function draw() external nonReentrant canDraw {
+    function draw() external nonReentrant canDraw returns (uint) {
         IERC20Upgradeable(matter).safeTransferFrom(msg.sender, address(this), drawDeposit);
         participated[msg.sender] = true;
 
@@ -58,6 +62,8 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
         nftGiftSet.remove(tokenId);
 
         emit Drew(msg.sender, tokenId);
+
+        return tokenId;
     }
 
     function packBox(uint fromId, uint toId) external onlyOwner {
@@ -73,9 +79,10 @@ contract BlindBox is OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC721Upgra
     }
 
     function claim(uint nftId) external nonReentrant {
-        require(!claimed[msg.sender], "claimed");
+        require(!claimed[nftId], "claimed");
+        require(IERC721Upgradeable(this).ownerOf(nftId) == msg.sender, "sender is not the owner of nft");
         require(claimAt < block.timestamp, "claim not ready");
-        claimed[msg.sender] = true;
+        claimed[nftId] = true;
         IERC20Upgradeable(matter).safeTransfer(msg.sender, drawDeposit);
 
         emit Claimed(msg.sender, nftId, matter, drawDeposit);

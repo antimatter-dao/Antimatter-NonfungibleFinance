@@ -32,17 +32,26 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         super.__ReentrancyGuard_init();
         super.__ERC1155_init(_uri);
 
-        // bsc 0x10ED43C718714eb63d5aA57B78B54704E256024E
-        // fantom 0xF491e7B69E4244ad4002BC14e878a34207E38c29
-        // avalanche 0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106
-        router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-        // bsc 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73
-        // fantom 0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3
-        // avalanche 0xefa94DE7a4656D787667C749f7E1223D71E9FD88
-        factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
+        if (block.chainid == 1) {
+            // ethereum
+            router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+            factory = IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
+        } else if (block.chainid == 56) {
+            // bsc
+            router = IUniswapV2Router02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
+            factory = IUniswapV2Factory(0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73);
+        } else if (block.chainid == 250) {
+            // fantom
+            router = IUniswapV2Router02(0xF491e7B69E4244ad4002BC14e878a34207E38c29);
+            factory = IUniswapV2Factory(0x152eE697f2E276fA89E96742e9bB9aB1F2E61bE3);
+        } else if (block.chainid == 43114) {
+            // avalanche
+            router = IUniswapV2Router02(0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106);
+            factory = IUniswapV2Factory(0xefa94DE7a4656D787667C749f7E1223D71E9FD88);
+        }
 
         if (_matter != address(0)) {
-            require(factory.getPair(_matter, router.WETH()) != address(0), "pair not exists");
+            require(factory.getPair(_matter, getWETH()) != address(0), "pair not exists");
         }
         matter = _matter;
 
@@ -59,7 +68,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         require(req.underlyingTokens.length > 0, "invalid length");
         require(req.underlyingTokens.length == req.underlyingAmounts.length, "invalid length");
 
-        address weth = router.WETH();
+        address weth = getWETH();
         for (uint i = 0; i < req.underlyingTokens.length; i++) {
             require(factory.getPair(req.underlyingTokens[i], weth) != address(0), "pair not exists");
         }
@@ -86,7 +95,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
         uint totalInAmount = msg.value.sub(fee);
         uint remaining = totalInAmount;
         address[] memory path = new address[](2);
-        path[0] = router.WETH();
+        path[0] = getWETH();
         uint deadline = block.timestamp.add(20 minutes);
         for (uint i = 0; i < index.underlyingTokens.length; i++) {
             uint amountOut = index.underlyingAmounts[i].mul(nftAmount);
@@ -110,7 +119,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
 
         uint totalOutAmount = 0;
         address[] memory path = new address[](2);
-        path[1] = router.WETH();
+        path[1] = getWETH();
         uint deadline = block.timestamp.add(20 minutes);
         for (uint i = 0; i < index.underlyingTokens.length; i++) {
             uint amountIn = index.underlyingAmounts[i].mul(nftAmount);
@@ -135,7 +144,7 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             if (matter != address(0)) {
                 uint amountOutMin = 0;
                 address[] memory path = new address[](2);
-                path[0] = router.WETH();
+                path[0] = getWETH();
                 path[1] = matter;
                 uint deadline = block.timestamp.add(20 minutes);
                 router.swapExactETHForTokens{value: creatorFee}(amountOutMin, path, msg.sender, deadline);
@@ -176,6 +185,16 @@ contract FinanceIndexV2 is IndexBase, OwnableUpgradeable, ReentrancyGuardUpgrade
             ? string(abi.encodePacked(baseURI, "?nftId=", id.toString(), "&chainId=", block.chainid.toString()))
             : '';
     }
+
+    function getWETH() public view returns (address) {
+        // avalanche
+        if (block.chainid == 43114) {
+            return 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+        }
+
+        return router.WETH();
+    }
+
 
     function _handleFee(uint nftId) private {
         uint halfFee = fee.div(2);

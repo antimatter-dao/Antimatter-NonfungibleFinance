@@ -1,7 +1,8 @@
 require("@nomiclabs/hardhat-waffle");
 require('@openzeppelin/hardhat-upgrades');
 require("@nomiclabs/hardhat-web3");
-const { projectId, mnemonic } = require('./secret.json');
+// const { projectId, mnemonic } = require('./secret.rinkeby.json');
+const { projectId, mnemonic } = require('./secret.mainnet-matter.json');
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -25,6 +26,14 @@ module.exports = {
     },
     bsc: {
       url: `https://bsc-dataseed.binance.org/`,
+      accounts: [mnemonic]
+    },
+    fantom: {
+      url: `https://rpc.ftm.tools/`,
+      accounts: [mnemonic]
+    },
+    avax: {
+      url: 'https://api.avax.network/ext/bc/C/rpc',
       accounts: [mnemonic]
     }
   },

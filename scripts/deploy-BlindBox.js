@@ -4,11 +4,12 @@ async function main() {
     const Contract = await ethers.getContractFactory("BlindBox");
     const name = "Antimatter Locker";
     const symbol = "Locker";
-    const baseURI = "https://nftapi.antimatter.finance/app/getMetadata";
+    const baseURI = "https://nftapi.antimatter.finance/app/getBlindBoxMetadata/";
     const matter = '0x9b99cca871be05119b2012fd4474731dd653febe';
-    const drawFee = ethers.utils.parseEther('2000');
+    const drawDeposit = ethers.utils.parseEther('1000');
+    const claimDelay = 4*30*86400;
     const contract = await upgrades.deployProxy(Contract, [
-        name, symbol, baseURI, matter,
+        name, symbol, baseURI, matter, drawDeposit, claimDelay
     ], 'initialize');
     await contract.deployed();
 

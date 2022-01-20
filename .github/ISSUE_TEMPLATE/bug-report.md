@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Describe an issue in the Antimatter Interface
+about: Describe an issue in the Antimatter-NonfungibleFinance
 title: ''
 labels: bug
 assignees: ''
